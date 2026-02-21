@@ -22,3 +22,10 @@ async def create_user(user_create: UserCreate ,
     user = await user_repo.create(user_create)
     return user
 
+@router.delete("/{user_id}",)
+async def delete_user(user_id : int, db : AsyncSession = Depends(get_db)):
+    user_repo = UserRepository(db)
+
+    resp = await user_repo.delete_user(user_id)
+    return resp
+
