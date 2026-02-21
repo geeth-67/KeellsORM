@@ -51,3 +51,18 @@ class UserRepository:
         await self.db.commit()
         return "User deleted successfully"
 
+    async def update_user(self ,user_id : int, user_update: UserUpdate):
+
+        user = await self.get_user_by_id(user_id )
+        if not user:
+            return "user not found"
+
+        update_data = user_update.model_dump(exclude_unset=True)
+        if update_data:
+            for key, value in update_data.items():
+                setattr(user, key, value)
+
+            await self.db.commit()
+            await self.db.refresh(user)
+
+        return user
