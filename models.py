@@ -15,3 +15,15 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     email : Mapped[str] = mapped_column(String(255) , unique=True , nullable=False)
 
+class Invoice(Base):
+    __tablename__ = 'invoices'
+
+    id : Mapped[int] = mapped_column(primary_key=True , index=True )
+    user_id : Mapped[int] = mapped_column(nullable=False)
+    amount : Mapped[float] = mapped_column(nullable=False)
+    description : Mapped[str] = mapped_column(String(255))
+
+    created_at : Mapped[datetime] = mapped_column(
+        server_default=func.now(),
+        default=datetime.now()
+    )
