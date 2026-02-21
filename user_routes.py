@@ -29,3 +29,10 @@ async def delete_user(user_id : int, db : AsyncSession = Depends(get_db)):
     resp = await user_repo.delete_user(user_id)
     return resp
 
+@router.get("/" , status_code=status.HTTP_200_OK)
+async def get_all_users( db : AsyncSession = Depends(get_db)):
+    user_repo = UserRepository(db)
+
+    resp = await user_repo.get_all_users()
+    return resp
+
