@@ -36,3 +36,9 @@ async def get_all_users( db : AsyncSession = Depends(get_db)):
     resp = await user_repo.get_all_users()
     return resp
 
+@router.put("/{user_id}", status_code=status.HTTP_200_OK)
+async def update_user(user_id : int, user_update : UserUpdate, db : AsyncSession = Depends(get_db)):
+    user_repo = UserRepository(db)
+
+    user = await user_repo.update_user(user_id=user_id, user_update=user_update)
+    return user
