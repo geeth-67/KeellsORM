@@ -14,3 +14,18 @@ async def create_invoice_router(invoice_create: InvoiceCreate, db: AsyncSession 
     invoice = await invoice_repo.create_invoice(invoice_create)
     return invoice
 
+@router.delete("/{invoice_id}")
+async def delete_invoice( invoice_id:int, db: AsyncSession = Depends(get_db)):
+    invoice_repo = InvoiceRepository(db)
+    invoice = await invoice_repo.delete_invoice(invoice_id)
+    return invoice
+
+@router.get("/")
+async def get_all_invoices(
+        skip :int = 0,
+        limit:int = 10,
+        db: AsyncSession = Depends(get_db)
+):
+    invoice_repo = InvoiceRepository(db)
+    invoices = await invoice_repo.get_all_invoices(skip=skip, limit=limit)
+    return invoices
