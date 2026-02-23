@@ -22,3 +22,13 @@ class InvoiceRepository:
         await self.db.refresh(invoice)
         return invoice
 
+    async def get_invoice_by_id(self, id: int) -> Invoice:
+        query = select(Invoice).where(Invoice.id == id)
+        result = await self.db.execute(query)
+        return result.scalars().first()
+
+    async def get_invoice_by_user_id(self, user_id: int) -> Invoice:
+        query = select(Invoice).where(Invoice.user_id == user_id)
+        result = await self.db.execute(query)
+        return result.scalars().first()
+
