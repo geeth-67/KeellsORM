@@ -29,3 +29,12 @@ async def get_all_invoices(
     invoice_repo = InvoiceRepository(db)
     invoices = await invoice_repo.get_all_invoices(skip=skip, limit=limit)
     return invoices
+
+@router.put("/{invoice_id}")
+async def update_user( invoice_id :int, invoice_update: InvoiceUpdate, db: AsyncSession = Depends(get_db)):
+    invoice_repo = InvoiceRepository(db)
+    invoice = await invoice_repo.update_invoice(invoice_id=invoice_id, invoice_update=invoice_update)
+    if not invoice:
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found")
+    return invoice
+
