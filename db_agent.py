@@ -4,6 +4,7 @@ from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_community.utilities import SQLDatabase
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.postgres import PostgresSaver
 
 load_dotenv()
 
@@ -42,12 +43,23 @@ Then you should query the schema of the most relevant tables.
     dialect=db.dialect,
     top_k=5,
 )
+from langgraph.checkpoint.postgres import PostgresSaver
+
+POSTGRES_CHECKPOINT_URL = "postgresql://cclarke:admin@localhost:5432/keells"
+
+checkpointer_cm = PostgresSaver.from_conn_string(
+    POSTGRES_CHECKPOINT_URL
+)
+
+checkpointer = checkpointer_cm.__enter__()
+
+checkpointer.setup()
 
 sql_agent = create_agent(
     model=model,
     tools=tools,
     system_prompt=system_prompt,
-    checkpointer=InMemorySaver()
+    checkpointer=checkpointer
 )
 
 
