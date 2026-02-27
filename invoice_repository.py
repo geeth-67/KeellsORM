@@ -32,3 +32,30 @@ class InvoiceRepository:
         result = await self.db.execute(query)
         return result.scalars().first()
 
+    async def delete_invoice(self, id: int):
+        invoice = await self.get_invoice_by_id(id)
+        if not invoice:
+            return "Invoice does not exists"
+        await self.db.delete(invoice)
+        await self.db.commit()
+        return "Invoice deleted successfully"
+
+    async def update_invoice(self, invoice_id: int, invoice_update: InvoiceUpdate):
+        invoice = await self.get_invoice_by_id(invoice_id)
+        if not invoice:
+            return "Invoice does not exists"
+
+        update_data = invoice_update.model_dump(exclude_unset=True)
+
+        if update_data:
+            for key, val in update_data.items():
+                setattr(invoice, key, val)
+            await self.db.commit()
+            await self.db.refresh(invoice)
+        return invoice
+
+    async def get_all_invoices(self, skip: int = 0, limit: int = 20) -> Sequence[Any]:
+        query = select(Invoice).offset(skip).limit(limit)
+        result = await self.db.execute(query)
+
+        return result.scalars().all()
