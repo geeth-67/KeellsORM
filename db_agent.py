@@ -1,10 +1,16 @@
+import uuid
+
+import psycopg
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_community.utilities import SQLDatabase
+from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
-from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.checkpoint.postgres import PostgresSaver
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from models import PendingInsertRequest
 
 load_dotenv()
 
@@ -43,15 +49,17 @@ Then you should query the schema of the most relevant tables.
     dialect=db.dialect,
     top_k=5,
 )
-from langgraph.checkpoint.postgres import PostgresSaver
 
-POSTGRES_CHECKPOINT_URL = "postgresql://cclarke:admin@localhost:5432/keells"
-
-checkpointer_cm = PostgresSaver.from_conn_string(
-    POSTGRES_CHECKPOINT_URL
+POSTGRES_CONN = psycopg.connect(
+    dbname="keells",
+    user="cclarke",
+    password="admin",
+    host="localhost",
+    port="5432",
+    autocommit=True
 )
 
-checkpointer = checkpointer_cm.__enter__()
+checkpointer = PostgresSaver(POSTGRES_CONN)
 
 checkpointer.setup()
 
@@ -61,6 +69,57 @@ sql_agent = create_agent(
     system_prompt=system_prompt,
     checkpointer=checkpointer
 )
+
+async def propose_insert(query : str , session : AsyncSession):
+    schema_info = db.get_table_info()
+    prompt = f"""
+    You are a SQL assistant. Generate exactly one SQL INSERT Statement
+    for {db.dialect}. Use the provided schema and do NOT output anything
+    except the SQL statement. Do not wrap it in code fences. \n\n
+    
+    Schema: \n
+    {schema_info}\n
+    User Required:
+    {query}
+    
+    """
+
+    response = model.invoke([
+        SystemMessage(content="You only return a single SQL statement."),
+        HumanMessage(content=prompt),
+    ])
+
+    sql = response.content if hasattr(response, "content") else str(response)
+
+    approval_id = str(uuid.uuid4())
+    pending_request = PendingInsertRequest(
+        id=approval_id,
+        query=query,
+        sql=sql,
+        status='pending'
+    )
+
+    session.add(pending_request)
+    await session.commit()
+    return {"approval_id": approval_id, "sql": sql}
+
+
+async def approve_and_execute(approval_id : str, session : AsyncSession ,approve : bool):
+    pending_request = await session.get(PendingInsertRequest,approval_id)
+
+    if not pending_request:
+        raise ValueError(f"Approval id {approval_id} does not exist")
+
+    if not approve:
+        pending_request.status = "rejected"
+        await session.commit()
+        return "Rejected"
+
+    sql = pending_request.sql
+    result = db.run(sql)
+    pending_request.status = "approved"
+    await session.commit()
+    return str(result)
 
 
 def query_db_with_natural_language(query : str , thread_id : str = "1"):
