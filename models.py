@@ -1,7 +1,7 @@
 #we are defining our sqlalchemy ORM models
 from datetime import datetime
 
-from sqlalchemy import String , func
+from sqlalchemy import String, func, Text
 from sqlalchemy.orm import DeclarativeBase , Mapped , mapped_column
 
 
@@ -22,6 +22,19 @@ class Invoice(Base):
     user_id : Mapped[int] = mapped_column(nullable=False)
     amount : Mapped[float] = mapped_column(nullable=False)
     description : Mapped[str] = mapped_column(String(255))
+
+    created_at : Mapped[datetime] = mapped_column(
+        server_default=func.now(),
+        default=datetime.now()
+    )
+
+class PendingInsertRequest(Base):
+    __tablename__ = 'pending_requests'
+
+    id : Mapped[str] = mapped_column(primary_key=True , index=True )
+    query : Mapped[str] = mapped_column(String(1000))
+    sql : Mapped[str] = mapped_column(Text())
+    status : Mapped[int] = mapped_column(String(255), default='pending')
 
     created_at : Mapped[datetime] = mapped_column(
         server_default=func.now(),
