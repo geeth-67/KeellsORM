@@ -48,3 +48,35 @@ class InvoiceResponse(InvoiceBase):
 
     class Config:
         form_attributes = True
+
+
+#------------------------------------------------------------------------------#
+
+
+class QueryRequest(BaseModel):
+    query: str
+    thread_id: str
+
+class QueryResponse(QueryRequest):
+    result: str
+
+
+#------------------------------------------------------------------------------#
+
+
+class InsertProposalRequest(BaseModel):
+    query: str
+
+class InsertProposalResponse(BaseModel):
+    approval_id : str
+    sql : str
+    status : str
+
+class InsertApprovalRequest(BaseModel):
+    approval_id: str
+    approve : bool
+
+class InsertApprovalResponse(BaseModel):
+    approval_id : str
+    status : str
+    result : str
