@@ -8,5 +8,7 @@ langchain
 langchain-openai
 langchain-community
 langgraph
-psycopg2
 greenlet
+langchain-core
+psycopg
+langgraph.checkpoint.postgres
