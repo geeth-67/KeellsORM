@@ -12,3 +12,5 @@ greenlet
 langchain-core
 psycopg
 langgraph.checkpoint.postgres
+gradio
+starlette
