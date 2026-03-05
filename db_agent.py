@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models import PendingInsertRequest
 
+
 load_dotenv()
 
 DB_URL = "postgresql+psycopg2://cclarke:admin@localhost:5432/keells"
